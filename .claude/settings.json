@@ -13,7 +13,12 @@
       "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
       "WebFetch(domain:proceedings.neurips.cc)",
       "WebFetch(domain:fferflo.github.io)",
-      "WebFetch(domain:robu.in)"
+      "WebFetch(domain:robu.in)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:claude.ai)",
+      "WebFetch(domain:www.anthropic.com)",
+      "WebFetch(domain:support.anthropic.com)",
+      "WebFetch(domain:support.claude.com)"
     ]
   }
 }
