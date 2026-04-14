@@ -1,0 +1,220 @@
+<h1
+id="gps-denied-uav-navigation-2nd-iteration-brainstorming">GPS-Denied
+UAV Navigation — 2nd Iteration Brainstorming</h1>
+<p><strong>Project:</strong> MTech Final Year Project, IIT Madras
+<strong>Date:</strong> 2026-03-27 <strong>Status:</strong> Brainstorming
+— direction not yet finalized <strong>Session type:</strong> Research
+gap refinement + direction exploration</p>
+<hr />
+<h2 id="why-the-1st-iteration-was-rejected">1. Why the 1st Iteration Was
+Rejected</h2>
+<p>The 1st iteration proposed: &gt; <em>“Learning a Statistically
+Calibrated Measurement Likelihood p(z|x) for Monocular-Satellite Fused
+Particle Filter Navigation on GPS-Denied UAVs”</em></p>
+<p><strong>Problem:</strong> The core algorithm —
+<code>p(z|x) ∝ exp(s/tau)</code> with scene-adaptive learned temperature
+— is structurally identical to <strong>BEV-Patch-PF (arXiv 2512.15111,
+2025)</strong>, which already does: &gt;
+<code>p(z|x) ∝ exp(α_σ · cos_sim / τ_s)</code> with learned
+uncertainty-modulated temperature for a ground vehicle particle
+filter.</p>
+<p>The differentiation in the 1st iteration relied purely on domain
+transfer (ground vehicle → UAV nadir, depth → monocular). That is not
+sufficient novelty for ICRA/IROS/RA-L.</p>
+<hr />
+<h2 id="literature-confirmed-saturated-do-not-pursue">2. Literature
+Confirmed Saturated (Do Not Pursue)</h2>
+<p>Verified via web search as of 2026-03-27:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Why closed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DINOv2 + cross-view UAV matching</td>
+<td>Multiple IEEE RA-L 2025 papers (AirGeoNet, AGEN, DINO-MSRA)</td>
+</tr>
+<tr>
+<td>Hyperbolic embeddings + geo-localization</td>
+<td>HierLoc (arXiv 2601.23064), HypeVPR (CVPR 2026)</td>
+</tr>
+<tr>
+<td>Diffusion/score model + localization</td>
+<td>LocDiff (2025), DiffPF (arXiv 2507.15716)</td>
+</tr>
+<tr>
+<td>NeRF + particle filter localization</td>
+<td>Loc-NeRF (existing), HAL-NeRF (2025)</td>
+</tr>
+<tr>
+<td>Learned p(z|x) + temperature + PF</td>
+<td>BEV-Patch-PF (arXiv 2512.15111, 2025)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="directions-explored-this-session">3. Directions Explored This
+Session</h2>
+<h3 id="a-active-geo-localization-via-terrain-informativeness-maps">3A —
+Active Geo-Localization via Terrain Informativeness Maps</h3>
+<p><strong>Idea:</strong> Build offline Terrain Fisher Information Map
+(TFIM); when particle filter entropy exceeds threshold, inject waypoints
+toward high-TFIM regions. <strong>Rejected by user:</strong> Path
+selection IS the problem being solved. The drone must follow its
+mission; deviating to gather information defeats the purpose.</p>
+<h3 id="b-temporal-geo-localization-memory-via-mamba-ssm">3B — Temporal
+Geo-Localization Memory via Mamba SSM</h3>
+<p><strong>Idea:</strong> Replace i.i.d. measurement updates with
+sequential SSM over drone embedding stream.
+<code>p(z_{t-k:t} | x_t)</code> instead of <code>p(z_t | x_t)</code>.
+<strong>Status:</strong> Not rejected, but not selected. Medium novelty.
+Feasibility risk on RDK X5 latency.</p>
+<h3 id="c-domain-adaptive-observation-model-appearance-shift">3C —
+Domain-Adaptive Observation Model (Appearance Shift)</h3>
+<p><strong>Idea:</strong> Online domain-shift estimator δ_t;
+<code>p(z|x, δ_t)</code> conditioned on appearance gap (season,
+lighting). <strong>Status:</strong> Moderately novel, high feasibility.
+Not selected as primary.</p>
+<h3 id="d-semantic-osm-matching-no-satellite-tiles">3D — Semantic OSM
+Matching (No Satellite Tiles)</h3>
+<p><strong>Idea:</strong> Segment drone nadir view semantically; match
+to OpenStreetMap vector labels instead of satellite imagery.
+<strong>Problem for India:</strong> OSM coverage in Indian semi-urban
+areas is poor and unreliable. Informal settlements, construction zones
+not mapped.</p>
+<h3 id="e-conformal-prediction-for-navigation-uncertainty-bounds">3E —
+Conformal Prediction for Navigation Uncertainty Bounds</h3>
+<p><strong>Idea:</strong> Distribution-free guaranteed coverage
+intervals using split conformal prediction on PF output.
+<code>P(||x_true - x̂|| ≤ r) ≥ 1−α</code>. <strong>Status:</strong>
+Mathematically novel, but is a meta-algorithm on top of a base
+localization system — not a standalone contribution.</p>
+<h3 id="f-cross-spectral-navigation-sentinel-2-multispectral">3F —
+Cross-Spectral Navigation (Sentinel-2 Multispectral)</h3>
+<p><strong>Idea:</strong> Bridge RGB drone to free Sentinel-2
+multispectral tiles (NIR/SWIR). More seasonal robustness, globally free
+data. <strong>Problem:</strong> 10m/px Sentinel-2 resolution may be
+insufficient for sub-10m navigation accuracy.</p>
+<h3 id="g-mixture-of-terrain-experts-observation-model">3G —
+Mixture-of-Terrain-Experts Observation Model</h3>
+<p><strong>Idea:</strong> Gated MoE with specialist observation models
+per terrain type (urban/forest/agricultural/water).
+<strong>Status:</strong> Feasible, medium novelty. Strong ablation
+story. Not selected as primary.</p>
+<h3 id="h-score-driven-particle-flow-no-weightresample">3H —
+Score-Driven Particle Flow (no weight/resample)</h3>
+<p><strong>Idea:</strong> Train score network
+<code>s_θ(x, z) ≈ ∇_x log p(x|z_drone)</code>; particles flow via
+Langevin dynamics instead of weight/resample. <strong>Status:</strong>
+Highest mathematical novelty, but high risk. DiffPF (2025) partially
+occupies this space for generic state estimation.</p>
+<h3 id="i-structure-disentangled-geo-localization-india-specific">3I —
+Structure-Disentangled Geo-Localization (India-Specific)</h3>
+<p><strong>Idea:</strong> Train cross-view encoder that explicitly
+disentangles structural features (roads, water body outlines, building
+footprints) from appearance features (vegetation color, soil tone). Use
+only structural embedding for particle filter. Targets Indian seasonal
+variation (monsoon vs. dry: massive NDVI change). Includes first Indian
+UAV geo-localization dataset (IIT Madras campus, seasonal variation, RTK
+GPS). <strong>Status:</strong> Strong for Indian context. Not selected —
+user wants to return to original research statement.</p>
+<hr />
+<h2 id="return-to-original-research-statement">4. Return to Original
+Research Statement</h2>
+<p>The user clarified the original thesis focus:</p>
+<blockquote>
+<p><em>“Consistent state estimation in GPS-denied navigation, focusing
+on analysing estimation error evolution in visual-inertial systems under
+realistic sensing imperfections. The work will study the effects of
+bias, model assumptions, and temporal correlations on long-term
+consistency.”</em></p>
+</blockquote>
+<p>This is an <strong>analytical/theoretical</strong> paper, not a
+systems paper. The 1st iteration had become a systems paper.</p>
+<hr />
+<h2 id="hardware-constraint">5. Hardware Constraint</h2>
+<p><strong>IMU:</strong> WIT HWT905-485 (~₹8,600, budget &lt; ₹30,000) -
+Chip: MPU-9250 (consumer MEMS class) - Gyro bias instability: ~3–10
+deg/hr - Outputs: AHRS-filtered estimates (not raw IMU) via onboard
+Kalman filter</p>
+<p><strong>Long-flight accuracy verdict:</strong> - 5km flight with any
+IMU under ₹30,000 + monocular VIO: <strong>50–300m position
+error</strong> (physics-limited, not algorithm-limited) - Satellite
+geo-localization is therefore <strong>necessary</strong> for practical
+5km navigation accuracy</p>
+<hr />
+<h2 id="strongest-candidate-direction-end-of-session">6. Strongest
+Candidate Direction (End of Session)</h2>
+<p><strong>Not yet approved by user. Under consideration.</strong></p>
+<h3
+id="primary-vio-consistency-analysis-under-nested-filter-problem">Primary:
+VIO Consistency Analysis under Nested Filter Problem</h3>
+<p>The WIT HWT905 outputs AHRS-fused data (not raw IMU). Most budget
+IMUs do. This creates a nested filter problem:</p>
+<pre><code>raw_IMU → onboard Kalman filter → &quot;IMU&quot; output → VIO navigation filter
+                 ↑
+         introduces temporal correlations,
+         unknown/hidden noise covariance,
+         hidden bias dynamics</code></pre>
+<p>Standard VIO frameworks (VINS-Mono, OpenVINS) assume white-noise raw
+IMU. When fed AHRS-filtered output, the outer filter’s covariance is
+wrong by construction: noise is colored (shaped by inner filter
+bandwidth), bias dynamics are hidden.</p>
+<p><strong>Confirmed gap:</strong> No paper has formally analyzed
+consistency of VIO when using AHRS-filtered IMU output vs. raw IMU.</p>
+<p><strong>Research question:</strong> &gt; <em>“How does using
+AHRS-filtered IMU output degrade VIO filter consistency (NEES), and how
+does this hidden temporal correlation drive long-term position drift —
+with validated characterization on WIT HWT905 + RDK X5
+hardware?”</em></p>
+<p><strong>Also open:</strong> - Effect of CNN-based VO temporal
+correlation (SelfAttentionVO outputs correlated across frames) on filter
+NEES — no paper studied this</p>
+<h3
+id="secondary-satellite-geo-localization-as-consistency-restoration">Secondary:
+Satellite Geo-Localization as Consistency Restoration</h3>
+<p>When consistency degradation model predicts NEES breach: - Trigger
+satellite geo-localization correction (particle filter from iteration 1,
+simplified) - Correction rate derived analytically from degradation
+model, not hand-tuned</p>
+<hr />
+<h2 id="open-questions-not-yet-resolved">7. Open Questions / Not Yet
+Resolved</h2>
+<ol type="1">
+<li><strong>User has not approved direction</strong> — session ended
+before final selection</li>
+<li>Is the nested-filter consistency analysis sufficient depth for
+ICRA/IROS, or is it more of an RA-L / journal contribution?</li>
+<li>Can the satellite geo-localization secondary component be scoped
+minimally (simple NCC-based correction rather than full learned
+likelihood)?</li>
+<li>IIT Madras campus flights for validation — need to confirm RTK GPS
+availability for ground truth</li>
+<li>Dataset: Does collecting an India-specific VIO consistency dataset
+add publishability, or is the analysis alone sufficient?</li>
+</ol>
+<hr />
+<h2 id="next-steps-pending-user-decision">8. Next Steps (Pending User
+Decision)</h2>
+<ul class="task-list">
+<li><label><input type="checkbox" />User to confirm final research
+direction</label></li>
+<li><label><input type="checkbox" />If VIO consistency analysis
+confirmed: design analytical framework in detail</label></li>
+<li><label><input type="checkbox" />Decide how much of iteration 1’s
+satellite matching to keep</label></li>
+<li><label><input type="checkbox" />Run Allan variance characterization
+on WIT HWT905 hardware</label></li>
+<li><label><input type="checkbox" />Identify comparison baselines for
+NEES analysis</label></li>
+</ul>
+<hr />
+<p><em>Document generated: 2026-03-27 | Version: 2nd Iteration
+Brainstorming | Status: Direction not finalized</em></p>
