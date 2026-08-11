@@ -53,6 +53,18 @@ all, the system drifts **2.26 m median over 318 s** of real outdoor
 flight — that is VIO drift on real camera+IMU data, and it is what the
 map-matching loop closure periodically re-anchors.
 
+## Flight geography and distance
+
+- **Location:** CTU Prague campus, 50.112 N, 14.418 E, 225 m altitude
+  (suburban park / urban-fringe terrain)
+- **Circle:** 156 m path, 318 s, 14.6 m diameter, 0.5 m/s
+- **Figure-eight:** 471 m path, 512 s, ~0.9 m/s
+
+| Flight | Path | VIO-only p50 | +1 Hz fixes p50 |
+|---|---|---|---|
+| Circle | 156 m / 318 s | 2.26 m | 0.34 m |
+| Figure-eight | 471 m / 512 s | 5.35 m (1.1 % of distance) | 0.28 m |
+
 ## Honest notes
 
 - The flight is a small circle (14.6 m diameter) — drift on a 5 km
