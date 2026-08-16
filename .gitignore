@@ -1,0 +1,9 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+latex/build*.log
+latex/b[0-9].log
+latex/r[0-9].log
