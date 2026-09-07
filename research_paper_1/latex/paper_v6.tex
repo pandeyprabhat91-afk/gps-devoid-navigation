@@ -4,10 +4,12 @@
 \usepackage[T1]{fontenc}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{amsmath,amssymb}
 \usepackage{balance}
 \usepackage{cite}
 \usepackage{url}
+\setlength{\emergencystretch}{2.5em} % calm underfulls in dense two-column text
 
 \newcommand{\aliasname}{coherent-offset alias}
 
@@ -51,7 +53,8 @@ Coherent (mutually consistent) outliers in SLAM are studied theoretically for in
 
 \section{Related Work}
 
-\textbf{UAV--satellite geo-localization.} Retrieval-based systems~\cite{uavvisloc,anyvisloc,denseuav} and geometric pipelines (homography, as in the production matcher studied here; PnP against DSM~\cite{ortholoc,orthotrack}) are benchmarked by pooled accuracy-at-threshold. AnyVisLoc's Table~6 is representative: its baseline scores 74.1\% A@5\,m against an aerial photogrammetry reference but 18.5\% A@5\,m against a satellite reference~\cite{anyvisloc}---the satellite-reference tail exists, is large, and is not analyzed per-region. Our work is complementary: we analyze \emph{why} that tail exists rather than improving its head.
+{\sloppy
+Retrieval-based systems~\cite{uavvisloc,anyvisloc,denseuav} and geometric pipelines (homography, as in the production matcher studied here; PnP against DSM~\cite{ortholoc,orthotrack}) define \textbf{UAV--satellite geo-localization}, benchmarked by pooled accuracy-at-threshold. AnyVisLoc's Table~6 is representative: its baseline scores 74.1\% A@5\,m against an aerial photogrammetry reference but 18.5\% A@5\,m against a satellite reference~\cite{anyvisloc}---the satellite-reference tail exists, is large, and is not analyzed per-region. Our work is complementary: we analyze \emph{why} that tail exists rather than improving its head.\par}
 
 \textbf{Perceptual aliasing and robust estimation.} Aliasing in place recognition is a classic concern~\cite{lowry2016}; sequence-based VPR exploits temporal consistency to combat it~\cite{seqvpr}. Modern robust back-ends address mutually consistent outliers with pairwise consistency (PCM~\cite{mangelson2018}, Kimera-RPGO~\cite{kimera}), graduated non-convexity (GNC~\cite{yang2020}), or robust kernels on pose-graph factors (TACO~\cite{taco}). Lajoie et al.\ analyze coherent outliers in indoor SLAM theoretically and note that mutually consistent outliers defeat initial-guess-dependent rejection~\cite{lajoie2019}. Vineyard robotics reports row-level aliasing from ground LiDAR qualitatively~\cite{desilva2025,desilva2026,vineptmap}. Multi-hypothesis handling of aliasing dates to hypothesize-and-verify loop closure~\cite{tanaka2016}. None of these measures the rejection \emph{rate} of published methods on a shared cross-view fix stream, nor the temporal coherence of the alias offset itself---the measurements we contribute.
 
@@ -66,7 +69,8 @@ Coherent (mutually consistent) outliers in SLAM are studied theoretically for in
 \section{Method}
 
 \subsection{System under study}
-The pipeline is a production map matcher: ORB+AKAZE+SIFT pooled correspondences, MAGSAC homography~\cite{magsac}, image-centre projection through the inverse homography, patch-wide NCC verification at 0.30, \texttt{min\_inliers}=10, DEM-corrected AGL scale. Candidate generation is prior-centred ($5\times5$ tile ring). Frames carry a drifted prior injected as a random walk at 150/300/600\,m. Dataset: UAV-VisLoc~\cite{uavvisloc}, eleven Chinese sites; all measurements use the dataset's drone GPS as truth.
+{\sloppy
+The pipeline is a production map matcher combining pooled correspondences from ORB, AKAZE and SIFT, MAGSAC homography~\cite{magsac}, image-centre projection through the inverse homography, patch-wide NCC verification at 0.30 with the inlier floor at 10, DEM-corrected AGL scale. Candidate generation is prior-centred ($5\times5$ tile ring). Frames carry a drifted prior injected as a random walk at 150/300/600\,m. Dataset: UAV-VisLoc~\cite{uavvisloc}, eleven Chinese sites; all measurements use the dataset's drone GPS as truth.\par}
 
 \begin{figure}[t]
 \centering
@@ -276,12 +280,12 @@ Two findings follow. First, the alias class is \textbf{absent}: the alias tail i
 \label{tab:matchersig}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{@{}lcccccc@{}}
 \toprule
-Matcher & Solved & axial $R$ & axis & hole@0 & med. & lag-1 alias \\
+Matcher & Solved & axial $R$ & axis & hole & med.\ err & lag-1 \\
 \midrule
-pooled (paper) & 610 (83\%) & 0.31 & 167.2$^{\circ}$ & 0.18 & 31.1\,m & 2.55$\times$ ($n{=}25$) \\
+pooled & 610 (83\%) & 0.31 & 167.2$^{\circ}$ & 0.18 & 31.1\,m & 2.55$\times$ ($n{=}25$) \\
 ORB-only & 497 (67\%) & 0.28 & 169.3$^{\circ}$ & 0.19 & 31.1\,m & 2.09$\times$ ($n{=}14$) \\
 SIFT-only & 469 (64\%) & 0.28 & 166.5$^{\circ}$ & 0.19 & 30.0\,m & 2.24$\times$ ($n{=}10$) \\
 SP+LightGlue & 377 (51\%) & 0.23 & 167.4$^{\circ}$ & 0.22 & 30.2\,m & 1.57$\times$ ($n{=}24$) \\
@@ -296,10 +300,10 @@ Every matcher family reproduces the signature: the same axis within 3$^{\circ}$,
 \label{tab:matcherrate}
 \centering
 \footnotesize
-\setlength{\tabcolsep}{3.5pt}
+\setlength{\tabcolsep}{1.6pt}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-Rejector & pooled (27g/7f) & ORB (22g/7f) & SIFT (23g/8f) & LG (18g/2f) \\
+Rejector & \shortstack{pooled\\(27g/7f)} & \shortstack{ORB\\(22g/7f)} & \shortstack{SIFT\\(23g/8f)} & \shortstack{LG\\(18g/2f)} \\
 \midrule
 Seq.\ consistency & 85/100 (0.85) & 91/100 (0.91) & 78/100 (0.78) & 83/50 (1.67) \\
 3-consecutive & 30/57 (0.52) & 27/43 (0.64) & 26/25 (1.04) & 22/0 \\
@@ -338,7 +342,8 @@ RoMa produces 700--2000 MAGSAC inliers with tight reprojection RMSE on every fra
 \subsection{The field's standard fixes, measured}
 \label{sec:fixes}
 
-\textbf{PnP against the DSM (AnyVisLoc/OrthoLoC/OrthoTrack geometry) on the ceiling class---killed.} Lifting GT-tile correspondences to DEM elevation (90\,m grid) and solving PnP-RANSAC on the seven ceiling regions solves \emph{fewer} frames than the production homography everywhere (healthy control R03: 32 vs.\ 12 of 40) and worse where it solves (median 34--338\,m vs.\ homography's 11.6--37.6\,m). The ceiling class is correspondence-limited, not model-limited.
+\textbf{PnP against the DSM on the ceiling class---killed.} {\sloppy
+Lifting GT-tile correspondences to DEM elevation (90\,m grid) in the AnyVisLoc/OrthoLoC/OrthoTrack geometry and solving PnP-RANSAC on the seven ceiling regions solves \emph{fewer} frames than the production homography everywhere (healthy control R03: 32 vs.\ 12 of 40) and worse where it solves (median 34--338\,m vs.\ homography's 11.6--37.6\,m). The ceiling class is correspondence-limited, not model-limited.\par}
 
 \textbf{GNC graduated robust frame alignment~\cite{yang2020}---killed.} The graduated-robustness form of the Sec.~\ref{sec:bench} frame-alignment model keeps 0--7\% of fixes in every cell under every matcher at every drift: the $\mu$-graduation converges to an empty inlier set because the prior$\leftrightarrow$estimate offset has no constant mode (Sec.~\ref{sec:coherence}'s scatter). GNC is the sixth rejection family measured, and its behaviour is the cleanest confirmation of the gauge argument: graduated robustness does not rescue the class, it refuses to believe any of the stream.
 
@@ -379,7 +384,7 @@ prop.\ coarse (250\,m) & 4/7 & 25\% & 275\,m & 1/3/0/3 \\
 \centering
 \footnotesize
 \setlength{\tabcolsep}{3pt}
-\begin{tabular}{@{}ll@{}}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{2.55in}@{}}
 \toprule
 Solve band & Trajectories \\
 \midrule
